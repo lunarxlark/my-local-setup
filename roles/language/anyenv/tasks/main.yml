@@ -1,0 +1,41 @@
+- name: install anyenv
+  git:
+    repo: "{{ anyenv_repo_url }}"
+    dest: "{{ anyenv_install_dir }}"
+    clone: yes
+
+- name: install anyenv-plugins
+  git:
+    repo: "{{ item.repo_url }}"
+    dest: "{{ anyenv_plugins_install_dir }}/{{ item.name }}"
+  with_items:
+    - "{{ anyenv_plugins }}"
+
+- name: anyenv setting
+  lineinfile:
+    path=/etc/profile.d/anyenv.sh
+    create=yes
+    line={{ item }}
+    state=present
+  with_items:
+    - 'export ANYENV_ROOT={{ anyenv_install_dir }}'
+    - 'export PATH="${ANYENV_ROOT}/bin:$PATH"'
+    # Why --no-rehadh is added?
+    # Non-root user doesn't have permitted to write $SHIM_PATH. So below error occured.
+    # link: [pyenv v1.2.4] - when installed globally (users cannot write) 'cannot rehash' error on activation #1157
+    # https://github.com/pyenv/pyenv/issues/1157
+    - 'eval "$(anyenv init - --no-rehash)"'
+
+- name: check (envs)env installed
+  stat:
+    path: "{{ anyenv_install_dir }}/envs/{{ item }}/bin/{{ item }}"
+  register: st_installed
+  with_items:
+    - "{{ anyenv_envs }}"
+
+- name: install (envs)env
+  shell:
+    bash -lc "anyenv install -s {{ item.item }}"
+  with_items:
+    - "{{ st_installed.results }}"
+  when: not item.stat.exists

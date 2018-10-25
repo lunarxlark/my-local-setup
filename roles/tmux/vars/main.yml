@@ -1,0 +1,6 @@
+gem_path: /usr/local/bin/anyenv/envs/rbenv/shims/gem
+tmux_repo_url: https://github.com/tmux/tmux.git
+tmux_install_dir: /usr/local/src/tmux
+tmux_bin: /usr/local/bin/tmux
+# 最新版を取得するようにしたのでコメントアウト
+# tmux_version: 2.7

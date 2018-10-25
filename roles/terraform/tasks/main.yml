@@ -1,0 +1,59 @@
+- name: check terraform installed
+  stat:
+    path: "{{ terraform_bin_dir }}/terraform"
+  register: tf_bin
+
+- when: not tf_bin.stat.exists
+  block:
+
+  - name: download terraform
+    get_url:
+      url: "{{ terraform_url }}"
+      dest: /tmp/{{ terraform_zip }}
+      mode: 0644
+
+  - name: create directory
+    become: yes
+    file:
+      path: "{{ terraform_bin_dir }}"
+      state: directory
+      mode: 0755
+
+  - name: unzip
+    unarchive:
+      remote_src: yes
+      src: /tmp/{{ terraform_zip }}
+      dest: "{{ terraform_bin_dir }}"
+      creates: "{{ terraform_bin_dir }}/terraform"
+
+- name: link terraform
+  file:
+    src: "{{ terraform_bin_dir }}/terraform"
+    dest: "{{ terraform_install_dir }}/terraform"
+    state: link
+
+- name: install gem for terraform
+  gem:
+    name: "{{ item }}"
+    executable: /usr/local/bin/anyenv/envs/rbenv/shims/gem
+    user_install: no
+  with_items:
+    - terraforming
+    - terraform_landscape
+
+# shellだと冪等性が保てないので、`terraform -install-autocomplete`した結果をprofile.dに貼り付け
+- name: set profile.d/terraform.sh for terraform
+  become: yes
+  lineinfile:
+    path=/etc/profile.d/terraform.sh
+    create=yes
+    line={{ item }}
+  with_items:
+    - '# aws credential for aws'
+    - 'export TF_VAR_aws_access_key=${AWS_ACCESS_KEY_ID}'
+    - 'export TF_VAR_aws_secret_key=${AWS_SECRET_ACCESS_KEY}'
+    - 'export TF_VAR_aws_region=${AWS_DEFAULT_REGION}'
+    - '# terraform completion'
+    - 'complete -C $(which terraform) terraform'
+    - '# aliases'
+    - "alias tpl='terraform plan | landscape'"

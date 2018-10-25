@@ -1,0 +1,58 @@
+- name: check tmux installed
+  stat:
+    path: "{{ tmux_bin }}"
+  register: tmux_bin
+
+- when: not tmux_bin.stat.exists
+  block:
+
+  - name: (required) install library
+    apt:
+      name:
+        - automake
+        - build-essential
+        - libevent-dev
+        - libncurses5-dev
+        - pkg-config
+      state: present
+
+  - name: clone from github
+    git:
+      repo: "{{ tmux_repo_url }}"
+      dest: "{{ tmux_install_dir }}"
+      clone: yes
+
+  - name: checkout latest version
+    shell: |-
+      bash -lc "git checkout $(git tag | grep -v 'to-merge' | sort -V | tail -n 1)"
+    args:
+      chdir: "{{ tmux_install_dir }}"
+
+  - name: install tmux
+    shell: |-
+      bash -lc ". autogen.sh"
+      bash -lc "./configure"
+      bash -lc "make"
+      bash -lc "make install"
+    args:
+      chdir: "{{ tmux_install_dir }}"
+
+- name: install tmuxinator
+  become: yes
+  become_user: vagrant
+  gem:
+    name: "{{ item }}"
+    executable: "{{ gem_path }}"
+    state: present
+  with_items:
+    - tmuxinator
+
+- name: add alias
+  become: yes
+  lineinfile:
+    path=/etc/profile.d/tmux.sh
+    create=yes
+    line={{ item }}
+    state=present
+  with_items:
+    - "alias mux='tmuxinator'"

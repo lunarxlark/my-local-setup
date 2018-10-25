@@ -1,0 +1,19 @@
+- name: check node.js installed
+  stat:
+    path: "/usr/local/bin/anyenv/envs/ndenv/shims/node"
+  register: st_installed
+
+- when: not st_installed.stat.exists
+  block:
+
+  - name: install node.js
+    shell: |-
+      bash -lc 'ndenv install -s {{ nodejs_version }}'
+    when: nodejs_version is defined
+
+  - name: set ndenv global
+    shell: |-
+      bash -lc 'ndenv global {{ nodejs_global }}'
+      # anyenv init -で実行しているので不要
+      # bash -lc "ndenv rehash"
+    when: nodejs_global is defined

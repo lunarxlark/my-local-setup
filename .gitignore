@@ -1,0 +1,5 @@
+.git
+.vagrant
+*.log
+node_modules/
+*.retry

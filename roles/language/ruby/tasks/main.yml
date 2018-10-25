@@ -1,0 +1,38 @@
+- name: check ruby installed
+  stat:
+    path: "/usr/local/bin/anyenv/envs/rbenv/shims/ruby"
+  register: st_installed
+
+- when: not st_installed.stat.exists
+  block:
+
+  - name: install ruby
+    shell: |-
+      bash -lc "rbenv install -s {{ ruby_version }}"
+    when: ruby_version is defined
+
+  - name: set rbenv global
+    shell: |-
+      bash -lc "rbenv global {{ ruby_global }}"
+      # anyenv init -で実行しているので不要
+      # bash -lc "rbenv rehash"
+    when: ruby_global is defined
+
+  - name: install bundler
+    gem:
+      name: bundler
+      # executableを指定しないとgemにpathが通らない。roleを分けているため、動的なgemへのpathの記述がない。
+      executable: /usr/local/bin/anyenv/envs/rbenv/shims/gem
+      user_install: no
+      state: present
+
+  # bundle installはプロジェクト毎に実施するべき。
+  # systemにinstallするとプロジェクトに影響があるためrootではinstallしない。
+  # - name: bundle install
+  #   bundler:
+  #     gemfile: /vagrant/Gemfile
+  #     # executableを指定しないとbundlerにpathが通らない。roleを分けているため、動的なbundlerへのpathの記述がない。
+  #     executable: /usr/local/bin/anyenv/envs/rbenv/shims/bundler
+  #     # gem_pathをしていしないとgemにpathが通らない。
+  #     gem_path: /usr/local/bin/anyenv/envs/rbenv/shims/gem
+  #     state: present

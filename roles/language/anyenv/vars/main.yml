@@ -1,0 +1,13 @@
+anyenv_repo_url: https://github.com/riywo/anyenv
+anyenv_install_dir: /usr/local/bin/anyenv
+
+anyenv_plugins_install_dir: "{{ anyenv_install_dir }}/plugins"
+anyenv_plugins:
+  - name: anyenv-update
+    repo_url: https://github.com/znz/anyenv-update.git
+
+anyenv_envs:
+  - pyenv
+  - goenv
+  - rbenv
+  - ndenv

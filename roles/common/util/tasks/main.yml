@@ -1,0 +1,14 @@
+- name: install useful command
+  apt:
+    name: "{{ util }}"
+    state: present
+
+- name: add alias
+  become: yes
+  lineinfile:
+    path=/etc/profile.d/bash_aliases.sh
+    create=yes
+    line={{ item }}
+    state=present
+  with_items:
+    - "alias diff='colordiff -u'"

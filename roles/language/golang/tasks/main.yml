@@ -1,0 +1,19 @@
+- name: check golang installed
+  stat:
+    path: "/usr/local/bin/anyenv/envs/goenv/shims/go"
+  register: st_installed
+
+- when: not st_installed.stat.exists
+  block:
+
+  - name: install golang
+    shell: |-
+      bash -lc "goenv install -s {{ golang_version }}"
+    when: golang_version is defined
+
+  - name: set golang global
+    shell: |-
+      bash -lc "goenv global {{ golang_global }}"
+      # anyenv init -で実行しているので不要
+      # bash -lc "goenv rehash"
+    when: golang_global is defined

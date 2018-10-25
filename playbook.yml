@@ -1,0 +1,16 @@
+- hosts: all
+  environment:
+  # proxy setting
+  #  http_proxy: "http://<proxy-ip>:<proxy-port>"
+  #  https_proxy: "http://<proxy-ip>:<proxy-port>"
+  roles:
+    - { role: common/init, become: yes ,tags: [common, init]}
+    - { role: common/util, become: yes, tags: [common, util]}
+    - { role: language/anyenv, become: yes, tags: [langage, anyenv]}
+    - { role: language/python, become: yes, tags: [python]}
+    - { role: language/golang, become: yes, tags: [golang]}
+    - { role: language/ruby, become: yes, tags: [ruby]}
+    - { role: language/nodejs, become: yes, tags: [nodejs]}
+    - { role: terraform, become: yes, tags: [terraform]}
+    - { role: aws, become: yes, tags: [aws]}
+    - { role: tmux, become: yes, tags: [tmux]}
